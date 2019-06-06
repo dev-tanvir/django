@@ -162,7 +162,7 @@ class OneToOneTests(TestCase):
 
     def test_create_models_m2m(self):
         """
-        Modles are created via the m2m relation if the remote model has a
+        Models are created via the m2m relation if the remote model has a
         OneToOneField (#1064, #1506).
         """
         f = Favorites(name='Fred')
@@ -279,6 +279,14 @@ class OneToOneTests(TestCase):
         num_deleted, objs = Pointer.objects.filter(other__name='name').delete()
         self.assertEqual(num_deleted, 1)
         self.assertEqual(objs, {'one_to_one.Pointer': 1})
+
+    def test_save_nullable_o2o_after_parent(self):
+        place = Place(name='Rose tattoo')
+        bar = UndergroundBar(place=place)
+        place.save()
+        bar.save()
+        bar.refresh_from_db()
+        self.assertEqual(bar.place, place)
 
     def test_reverse_object_does_not_exist_cache(self):
         """

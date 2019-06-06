@@ -55,10 +55,8 @@ class Q(tree.Node):
     default = AND
     conditional = True
 
-    def __init__(self, *args, **kwargs):
-        connector = kwargs.pop('_connector', None)
-        negated = kwargs.pop('_negated', False)
-        super().__init__(children=list(args) + list(kwargs.items()), connector=connector, negated=negated)
+    def __init__(self, *args, _connector=None, _negated=False, **kwargs):
+        super().__init__(children=[*args, *sorted(kwargs.items())], connector=_connector, negated=_negated)
 
     def _combine(self, other, conn):
         if not isinstance(other, Q):
@@ -98,13 +96,16 @@ class Q(tree.Node):
 
     def deconstruct(self):
         path = '%s.%s' % (self.__class__.__module__, self.__class__.__name__)
+        if path.startswith('django.db.models.query_utils'):
+            path = path.replace('django.db.models.query_utils', 'django.db.models')
         args, kwargs = (), {}
         if len(self.children) == 1 and not isinstance(self.children[0], Q):
             child = self.children[0]
             kwargs = {child[0]: child[1]}
         else:
             args = tuple(self.children)
-            kwargs = {'_connector': self.connector}
+            if self.connector != self.default:
+                kwargs = {'_connector': self.connector}
         if self.negated:
             kwargs['_negated'] = True
         return path, args, kwargs
@@ -282,7 +283,7 @@ def check_rel_lookup_compatibility(model, target_opts, field):
     # If the field is a primary key, then doing a query against the field's
     # model is ok, too. Consider the case:
     # class Restaurant(models.Model):
-    #     place = OnetoOneField(Place, primary_key=True):
+    #     place = OneToOneField(Place, primary_key=True):
     # Restaurant.objects.filter(pk__in=Restaurant.objects.all()).
     # If we didn't have the primary key check, then pk__in (== place__in) would
     # give Place's opts as the target opts, but Restaurant isn't compatible

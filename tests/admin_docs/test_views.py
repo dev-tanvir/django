@@ -28,7 +28,7 @@ class AdminDocViewTests(TestDataMixin, AdminDocsTestCase):
         self.client.logout()
         response = self.client.get(reverse('django-admindocs-docroot'), follow=True)
         # Should display the login screen
-        self.assertContains(response, '<input type="hidden" name="next" value="/admindocs/" />', html=True)
+        self.assertContains(response, '<input type="hidden" name="next" value="/admindocs/">', html=True)
 
     def test_bookmarklets(self):
         response = self.client.get(reverse('django-admindocs-bookmarklets'))
@@ -51,6 +51,12 @@ class AdminDocViewTests(TestDataMixin, AdminDocsTestCase):
         )
         self.assertContains(response, 'Views by namespace test')
         self.assertContains(response, 'Name: <code>test:func</code>.')
+        self.assertContains(
+            response,
+            '<h3><a href="/admindocs/views/admin_docs.views.XViewCallableObject/">'
+            '/xview/callable_object_without_xview/</a></h3>',
+            html=True,
+        )
 
     def test_view_index_with_method(self):
         """
@@ -193,7 +199,7 @@ class TestModelDetailView(TestDataMixin, AdminDocsTestCase):
         """
         Methods with keyword arguments should have their arguments displayed.
         """
-        self.assertContains(self.response, "<td>suffix=&#39;ltd&#39;</td>")
+        self.assertContains(self.response, '<td>suffix=&#x27;ltd&#x27;</td>')
 
     def test_methods_with_multiple_arguments_display_arguments(self):
         """
@@ -201,6 +207,10 @@ class TestModelDetailView(TestDataMixin, AdminDocsTestCase):
         displayed, but omitting 'self'.
         """
         self.assertContains(self.response, "<td>baz, rox, *some_args, **some_kwargs</td>")
+
+    def test_instance_of_property_methods_are_displayed(self):
+        """Model properties are displayed as fields."""
+        self.assertContains(self.response, '<td>a_property</td>')
 
     def test_method_data_types(self):
         company = Company.objects.create(name="Django")
@@ -313,9 +323,6 @@ class DescriptionLackingField(models.Field):
 
 
 class TestFieldType(unittest.TestCase):
-    def setUp(self):
-        pass
-
     def test_field_name(self):
         with self.assertRaises(AttributeError):
             views.get_readable_field_data_type("NotAField")

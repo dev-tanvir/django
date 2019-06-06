@@ -1,5 +1,4 @@
 import mimetypes
-import os
 from email import (
     charset as Charset, encoders as Encoders, generator, message_from_string,
 )
@@ -13,10 +12,11 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formatdate, getaddresses, make_msgid, parseaddr
 from io import BytesIO, StringIO
+from pathlib import Path
 
 from django.conf import settings
 from django.core.mail.utils import DNS_NAME
-from django.utils.encoding import force_text
+from django.utils.encoding import force_str
 
 # Don't BASE64-encode UTF-8 messages so that we avoid unwanted attention from
 # some spam filters.
@@ -170,7 +170,7 @@ class SafeMIMEText(MIMEMixin, MIMEText):
         MIMEText.__setitem__(self, name, val)
 
     def set_payload(self, payload, charset=None):
-        if charset == 'utf-8':
+        if charset == 'utf-8' and not isinstance(charset, Charset.Charset):
             has_long_lines = any(
                 len(l.encode()) > RFC5322_EMAIL_LINE_LENGTH_LIMIT
                 for l in payload.splitlines()
@@ -231,7 +231,7 @@ class EmailMessage:
             self.reply_to = []
         self.from_email = from_email or settings.DEFAULT_FROM_EMAIL
         self.subject = subject
-        self.body = body
+        self.body = body or ''
         self.attachments = []
         if attachments:
             for attachment in attachments:
@@ -333,11 +333,10 @@ class EmailMessage:
         as UTF-8. If that fails, set the mimetype to
         DEFAULT_ATTACHMENT_MIME_TYPE and don't decode the content.
         """
-        filename = os.path.basename(path)
-
-        with open(path, 'rb') as file:
+        path = Path(path)
+        with path.open('rb') as file:
             content = file.read()
-            self.attach(filename, content, mimetype)
+            self.attach(path.name, content, mimetype)
 
     def _create_message(self, msg):
         return self._create_attachments(msg)
@@ -376,7 +375,7 @@ class EmailMessage:
             elif not isinstance(content, Message):
                 # For compatibility with existing code, parse the message
                 # into an email.Message object if it is not one already.
-                content = message_from_string(force_text(content))
+                content = message_from_string(force_str(content))
 
             attachment = SafeMIMEMessage(content, subtype)
         else:
@@ -397,8 +396,7 @@ class EmailMessage:
                 filename.encode('ascii')
             except UnicodeEncodeError:
                 filename = ('utf-8', '', filename)
-            attachment.add_header('Content-Disposition', 'attachment',
-                                  filename=filename)
+            attachment.add_header('Content-Disposition', 'attachment', filename=filename)
         return attachment
 
     def _set_list_header_if_not_empty(self, msg, header, values):

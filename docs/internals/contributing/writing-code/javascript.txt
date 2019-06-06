@@ -53,9 +53,9 @@ To simplify the process of providing optimized JavaScript code, Django
 includes a handy Python script which should be used to create a "minified"
 version. To run it:
 
-.. code-block:: console
+.. console::
 
-    $ pip install closure
+    $ python -m pip install closure
     $ python django/contrib/admin/bin/compress.py
 
 Behind the scenes, ``compress.py`` is a front-end for Google's
@@ -134,19 +134,19 @@ To run the tests from the command line, you need to have `Node.js`_ installed.
 After installing `Node.js`, install the JavaScript test dependencies by running
 the following from the root of your Django checkout:
 
-.. code-block:: console
+.. console::
 
     $ npm install
 
 Then run the tests with:
 
-.. code-block:: console
+.. console::
 
     $ npm test
 
 .. _Closure Compiler: https://developers.google.com/closure/compiler/
-.. _EditorConfig: http://editorconfig.org/
+.. _EditorConfig: https://editorconfig.org/
 .. _Java: https://www.java.com
-.. _jshint: http://jshint.com/
+.. _jshint: https://jshint.com/
 .. _node.js: https://nodejs.org/
 .. _qunit: https://qunitjs.com/

@@ -213,10 +213,8 @@ Via the Python API
 
     Flatpages are represented by a standard
     :doc:`Django model </topics/db/models>`,
-    which lives in `django/contrib/flatpages/models.py`_. You can access
+    which lives in :source:`django/contrib/flatpages/models.py`. You can access
     flatpage objects via the :doc:`Django database API </topics/db/queries>`.
-
-.. _django/contrib/flatpages/models.py: https://github.com/django/django/blob/master/django/contrib/flatpages/models.py
 
 .. currentmodule:: django.contrib.flatpages
 
@@ -292,7 +290,7 @@ via the :ttag:`get_flatpages` tag:
 Displaying ``registration_required`` flatpages
 ----------------------------------------------
 
-By default, the :ttag:`get_flatpages` templatetag will only show
+By default, the :ttag:`get_flatpages` template tag will only show
 flatpages that are marked ``registration_required = False``. If you
 want to display registration-protected flatpages, you need to specify
 an authenticated user using a ``for`` clause.
